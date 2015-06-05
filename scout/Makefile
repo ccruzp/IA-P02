@@ -7,10 +7,10 @@ all:
 	make with_hash
 
 main : othello_cut.h
-	$(CXX) $(OPT)  main.cc -include othello_cut.h -o main
+	$(CXX) $(OPT)  main.cc -o main
 
 with_hash : othello_cut.h
-	$(CXX) $(OPT)  main_with_hash_table.cc -include othello_cut.h -o with_hash
+	$(CXX) $(OPT)  main_with_hash_table.cc -o with_hash
 
 clean:
 	rm *.o *~ main with_hash
