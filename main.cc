@@ -1,4 +1,4 @@
-*
+/*
 *  Copyright (C) 2012 Universidad Simon Bolivar
  * 
  *  Permission is hereby granted to distribute this software for
