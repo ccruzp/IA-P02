@@ -1,8 +1,23 @@
-p1 : main.o
-	g++ -Wall main.o -o p1
+CC = gcc
+CXX = g++
+OPT = -g
 
-main.o : main_with_hash_table.cc  othello_cut.h
-	g++ -Wall main_with_hash_table.cc -c othello_cut.h
+all:
+	make negamax
+	make negamax_ab
+	make scout
+	make negascout
+
+negamax :
+	cp negamax/negamax.cc negamax.cc
+	$(CXX) $(OPT) negamax.cc -include othello_cut.h -o negamax.p02
+	rm negamax.cc
+
+negamax_ab:
+	
+scout:
+
+negascout:
 
 clean:
-	\rm *.o *~ p1
+	rm -f *.o *~ *.p02
