@@ -26,6 +26,7 @@
 *.exe
 *.out
 *.app
+*.p02
 
 # Emacs temporal files
 *~
