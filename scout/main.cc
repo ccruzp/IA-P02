@@ -18,10 +18,56 @@
  *
  */
 
-#include "othello_cut.h" // won't work correctly until .h is fixed!
+#include "othello_cut.h" 
 #include <iostream>
 
-  using namespace std;
+using namespace std;
+
+bool test(state_t state, int value, int player) {
+  vector<int> succesors = state.get_succesors(player);
+  if(succesors.empty()) return(state.value() < value);
+  
+  if (player) {
+    for(vector<int>::iterator it = succesors.begin(); it != succesors.end(); ++it) {
+      state_t child = state.move(1-player, *it);
+      if(!test(child, value, 1-player)) return false;
+    }
+    return true;
+  }
+  
+  if(!player) {
+    for(vector<int>::iterator it = succesors.begin(); it != succesors.end(); ++it) {
+      state_t child = state.move(1-player, *it);
+      if(test(child, value, 1-player)) return true;
+    }
+    return false;
+  }
+}
+
+int scout(state_t state, int player) {
+  int value;
+  state_t child;
+  vector<int> succesors = state.get_succesors(player);
+  if(succesors.empty()) {
+    return state.value();
+  } else {
+    child = state.move(1-player, succesors.at(0));
+    value = scout(child, 1-player);
+  }
+  if (player) {
+    for(vector<int>::iterator it = succesors.begin()+1; it != succesors.end(); ++it) {
+      child = state.move(1-player, *it);
+      if(!test(child, value, 1-player)) value = scout(child, 1-player);
+    }
+  }
+  if(!player) {
+    for(vector<int>::iterator it = succesors.begin()+1; it != succesors.end(); ++it) {
+      child = state.move(1-player, *it);
+      if(test(child, value, 1-player)) value = scout(child, 1-player);
+    }
+  }
+  return value;
+}
 
 int main(int argc, const char **argv) {
   state_t state;
@@ -31,7 +77,7 @@ int main(int argc, const char **argv) {
     state_t estado = state.move(0, *it);
     cout << estado;
   }
-
+  
   // cout << "Principal variation:" << endl;
   // for( int i = 0; PV[i] != -1; ++i ) {
   //   bool player = i % 2 == 0; // black moves first!
