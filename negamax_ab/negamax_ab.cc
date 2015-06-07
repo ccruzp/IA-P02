@@ -24,19 +24,20 @@ using namespace std;
 
 const int sign[2]={-1,1};   // 0 is white, 1 is black
 
-int negamax_ab(state_t node, int color, int alpha, int beta,unsigned long long int &gen, unsigned long long int &eval ) {
+int negamax_ab(state_t node, int color, int alpha, int beta, unsigned long long int &gen, unsigned long long int &eval ) {
 
 	gen++;
 	/* Si el nodo es terminal, calculamos el valor de ese estado del juego
 	 * A diferencia del negamax original, no nos interesa la profundidad,
 	 * evaluaremos todo el sub-arbol.
 	 */
+
 	if ( node.terminal() ) {
 		eval++;
 		return sign[color] * node.value();
 	}
 
-	int max = INT_MIN;
+	int m = alpha;
 	// Obtenemos los estado sucesores del presente juego (node)
 	vector<int> moves = node.get_succesors(color);
 	
@@ -46,7 +47,8 @@ int negamax_ab(state_t node, int color, int alpha, int beta,unsigned long long i
 	 * Por lo tanto, el valor para este juego y para el jugador/color actual
 	 * será el mismo que este juego pero para el jugador/color contrario
 	 */
-	if (moves.empty()) return -negamax_ab(node, 1-color, -beta, -alpha, gen, eval);
+	if (moves.empty()) return -negamax_ab(node, 1-color, -beta, -m, gen, eval);
+
 
 	/* Por el contrario, si el juego y jugador/color actual si tiene movimientos
 	 * procedemos a calcular de manera recursiva negamax para cada uno
@@ -54,13 +56,12 @@ int negamax_ab(state_t node, int color, int alpha, int beta,unsigned long long i
 	 */
 	for(vector<int>::iterator it = moves.begin(); it != moves.end(); it++){
 		state_t child = node.move(color, *it);
-		int x = -negamax_ab(child, 1-color, -beta, -alpha, gen, eval);
-		if ( x > max ) max = x;
-		if ( x > alpha ) alpha = x;
-		if ( alpha >= beta ) return max;
+		int x = -negamax_ab(child, 1-color, -beta, -m, gen, eval);
+		if ( x > m ) m = x;
+		if ( m >= beta ) return m;
 	}
-	
-	return max;
+
+	return m;
 }
 
 int main(int argc, const char **argv) {
@@ -88,7 +89,7 @@ int main(int argc, const char **argv) {
 		else if (pid == 0) {
 			unsigned long long int eval = 0, gen = 0;
 			clock_t t = clock(); // INIT
-			int nmax = sign[1-player] * negamax_ab(state, 1-player, INT_MIN, INT_MAX, gen, eval);
+			int nmax = sign[1-player] * negamax_ab(state, 1-player, INT_MIN+1, INT_MAX-1, gen, eval);
 			t = clock() - t; // END
 			
 			double seconds = (double) t / (double) CLOCKS_PER_SEC;	
@@ -103,8 +104,7 @@ int main(int argc, const char **argv) {
 			int waittime = 0;
 			int status;
 			pid_t wpid;
-			//while ( waittime <= TIMEOUT ) {
-			while (1) {
+			while ( waittime <= TIMEOUT ) {
 				wpid = waitpid(pid, &status, WNOHANG);
 				if (wpid == 0){
 					waittime ++;
@@ -113,13 +113,13 @@ int main(int argc, const char **argv) {
 					break;
 				}
 			}
-			/*
+			
 			if ( waittime > TIMEOUT ) {					
 				kill(pid, SIGKILL); 
 				cout << "Se acabo el tiempo" << endl;
 				exit(1);
 			}
-			*/
+			
 		}		
 	}
 	return 0;

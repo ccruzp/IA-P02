@@ -33,7 +33,7 @@ int negamax(state_t node, int color, unsigned long long int &gen, unsigned long 
 	 */
 	if ( node.terminal() ) {
 		eval++;
-		return sign[color] * node.value();
+		return  sign[color] * node.value();
 	}
 
 	int max = INT_MIN;
@@ -55,9 +55,8 @@ int negamax(state_t node, int color, unsigned long long int &gen, unsigned long 
 	for(vector<int>::iterator it = moves.begin(); it != moves.end(); it++){
 		state_t child = node.move(color, *it);
 		int x = -negamax(child, 1-color, gen, eval);
-		if ( x > max ) max = x;		
+		if ( x > max ) max = x;
 	}
-	
 	return max;
 }
 
@@ -84,13 +83,12 @@ int main(int argc, const char **argv) {
 			exit(1);
 		}
 		else if (pid == 0) {
-			//cout << state;
 			unsigned long long int eval = 0, gen = 0;
-			
-			clock_t t = clock(); // INIT
+			// INIT
+			clock_t t = clock(); 
 			int nmax = sign[1-player] * negamax(state, 1-player, gen, eval);
-			t = clock() - t; // END
-			
+			t = clock() - t;
+			// END
 			double seconds = (double) t / (double) CLOCKS_PER_SEC;	
 			if (nmax != -4) {
 				cout << "Resultado erroneo: " << nmax << endl;
@@ -102,8 +100,7 @@ int main(int argc, const char **argv) {
 			int waittime = 0;
 			int status;
 			pid_t wpid;
-			//while ( waittime <= TIMEOUT ) {
-			while (1) {
+			while ( waittime <= TIMEOUT ) {
 				wpid = waitpid(pid, &status, WNOHANG);
 				if (wpid == 0){
 					waittime ++;
@@ -112,13 +109,12 @@ int main(int argc, const char **argv) {
 					break;
 				}
 			}
-			/*
+			
 			if ( waittime > TIMEOUT ) {					
 				kill(pid, SIGKILL); 
 				cout << "Se acabo el tiempo" << endl;
 				exit(1);
-			}
-			*/
+			}			
 		}		
 	}
 	return 0;
