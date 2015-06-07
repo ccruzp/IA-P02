@@ -1,6 +1,6 @@
 /*
  * Inteligencia Artificial - Proyecto 2
- * Negamax
+ * Negamax Alpha-Beta
  * Esteban Oliveros
  * Carlos Cruz
  * Cristian Medina
@@ -24,7 +24,7 @@ using namespace std;
 
 const int sign[2]={-1,1};   // 0 is white, 1 is black
 
-int negamax(state_t node, int color, unsigned long long int &gen, unsigned long long int &eval ) {
+int negamax_ab(state_t node, int color, int alpha, int beta,unsigned long long int &gen, unsigned long long int &eval ) {
 
 	gen++;
 	/* Si el nodo es terminal, calculamos el valor de ese estado del juego
@@ -46,7 +46,7 @@ int negamax(state_t node, int color, unsigned long long int &gen, unsigned long 
 	 * Por lo tanto, el valor para este juego y para el jugador/color actual
 	 * será el mismo que este juego pero para el jugador/color contrario
 	 */
-	if (moves.empty()) return -negamax(node, 1-color, gen, eval);
+	if (moves.empty()) return -negamax_ab(node, 1-color, -beta, -alpha, gen, eval);
 
 	/* Por el contrario, si el juego y jugador/color actual si tiene movimientos
 	 * procedemos a calcular de manera recursiva negamax para cada uno
@@ -54,8 +54,10 @@ int negamax(state_t node, int color, unsigned long long int &gen, unsigned long 
 	 */
 	for(vector<int>::iterator it = moves.begin(); it != moves.end(); it++){
 		state_t child = node.move(color, *it);
-		int x = -negamax(child, 1-color, gen, eval);
-		if ( x > max ) max = x;		
+		int x = -negamax_ab(child, 1-color, -beta, -alpha, gen, eval);
+		if ( x > max ) max = x;
+		if ( x > alpha ) alpha = x;
+		if ( alpha >= beta ) return max;
 	}
 	
 	return max;
@@ -64,7 +66,7 @@ int negamax(state_t node, int color, unsigned long long int &gen, unsigned long 
 int main(int argc, const char **argv) {
 
 	state_t root;
-	cout << "Corrida de Negamax" << endl;
+	cout << "Corrida de Negamax Alpha Beta" << endl;
 	cout << "Estado | Tiempo | Evaluados | Generados" << endl;
 	
 	for(int d = MAXMOVE; d >= 0; d--){ // d >= -1 para que llegue a la raiz
@@ -84,16 +86,15 @@ int main(int argc, const char **argv) {
 			exit(1);
 		}
 		else if (pid == 0) {
-			//cout << state;
 			unsigned long long int eval = 0, gen = 0;
-			
 			clock_t t = clock(); // INIT
-			int nmax = sign[1-player] * negamax(state, 1-player, gen, eval);
+			int nmax = sign[1-player] * negamax_ab(state, 1-player, INT_MIN, INT_MAX, gen, eval);
 			t = clock() - t; // END
 			
 			double seconds = (double) t / (double) CLOCKS_PER_SEC;	
 			if (nmax != -4) {
 				cout << "Resultado erroneo: " << nmax << endl;
+				exit(1);
 			}
 			cout << d << " | " << seconds << " | " << eval << " | " << gen << endl;
 			exit(0);
