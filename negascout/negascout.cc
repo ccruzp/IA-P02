@@ -17,7 +17,7 @@ using namespace std;
 
 const int sign[2]={-1,1};   // 0 is white, 1 is black
 
-int negascout(state_t node, int color, int alpha, int beta, unsigned long long int &gen, unsigned long long int &eval){
+int negascout(state_t node,int d, int color, int alpha, int beta, unsigned long long int &gen, unsigned long long int &eval){
 	
 	gen++;	
   
@@ -32,18 +32,18 @@ int negascout(state_t node, int color, int alpha, int beta, unsigned long long i
   state_t child;
   vector<int> succesors = node.get_succesors(color);
 
-	if (succesors.empty()) return -negascout(node, 1-color, -beta, -alpha, gen, eval);
+	if (succesors.empty()) return -negascout(node, d, 1-color, -beta, -alpha, gen, eval);
 
 	for (vector<int>::iterator it = succesors.begin(); it != succesors.end(); it++) {
 
 		state_t child = node.move(color, *it);
 
-		int t = -negascout(child, 1-color, -b, -(max(a,alpha)), gen, eval);
+		int t = -negascout(child, d-1, 1-color, -b, -(max(a,alpha)), gen, eval);
 		if (t > a) {
-			if (b == beta || t >= beta) {
+			if (b == beta || t >= beta || d < 3) {
 				a = t;		
 			} else {
-				a = -negascout(child, 1-color, -beta, -t, gen, eval);
+				a = -negascout(child, d-1, 1-color, -beta, -t, gen, eval);
 			}
 			if (a >= beta) {
 				eval++;
@@ -86,7 +86,7 @@ int main(int argc, const char **argv) {
 		else if (pid == 0) {
 			unsigned long long int eval = 0, gen = 0;
 			clock_t t = clock(); // INIT
-			int nmax = sign[1-player] * negascout(state, 1-player,INT_MIN+1, INT_MAX-1, gen, eval);
+			int nmax = sign[1-player] * negascout(state, d, 1-player,INT_MIN+1, INT_MAX-1, gen, eval);
 			t = clock() - t; // END
 			
 			double seconds = (double) t / (double) CLOCKS_PER_SEC;	
