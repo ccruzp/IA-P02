@@ -20,14 +20,15 @@ const int sign[2]={-1,1};   // 0 is white, 1 is black
 int negascout(state_t node,int d, int color, int alpha, int beta, unsigned long long int &gen, unsigned long long int &eval){
 	
 	gen++;	
-  
+
+	// Verificacion de nodo Terminal
 	if (node.terminal()){
 		eval++;		
 		return  sign[color] * node.value();
 	}
 
-	int a = INT_MIN+1;
-	int b = beta;
+	int a = INT_MIN+1;		// Limite Inferior
+	int b = beta;					// Limite Superior
 
   state_t child;
   vector<int> succesors = node.get_succesors(color);
@@ -43,19 +44,17 @@ int negascout(state_t node,int d, int color, int alpha, int beta, unsigned long 
 			if (b == beta || t >= beta || d < 3) {
 				a = t;		
 			} else {
-				a = -negascout(child, d-1, 1-color, -beta, -t, gen, eval);
+				a = -negascout(child, d-1, 1-color, -beta, -t, gen, eval);	
 			}
-			if (a >= beta) {
-				eval++;
+			// Poda 
+			if (a >= beta) {	
 				return a;
 			}
 			b = max(alpha, a) + 1;
 		}
 		
 	}
-	eval++;
 	return a;
-
 }
 
 
