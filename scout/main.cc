@@ -24,70 +24,110 @@ using namespace std;
 
 const int sign[2] = {-1, 1}; // pos 0 is white, pos 1 is black
 
+bool testMayor(state_t state, int value, int player) {
+  state_t child;
+  if(state.terminal()) return (state.value() > value);
+
+  vector<int> succesors = state.get_succesors(player);
+  if(succesors.empty()) return !testMayor(state, value, 1-player);
+  if(player == 1) {
+    for(vector<int>::iterator it = succesors.begin(); it != succesors.end(); ++it) {
+      child = state.move(true, *it);
+      if(testMayor(child, value, 1-player)) return true;
+    }
+    return false;
+  }
+  if(player == 0) {
+    for(vector<int>::iterator it = succesors.begin(); it != succesors.end(); ++it) {
+      child = state.move(false, *it);
+      if(!testMayor(child, value, 1-player)) return false;
+    }
+    return true;
+  }
+}
+
 // bool test(state_t state, int value, int &acum, int player) {
-bool test(state_t state, int value, int player) {
+bool testMenor(state_t state, int value, int player) {
   state_t child;
   if(state.terminal()) return (state.value() < value);
 
   vector<int> succesors = state.get_succesors(player);
-  
-  if (player) {
+  if(succesors.empty()) return !testMenor(state, value, 1-player);  
+
+  if (player == 1) {
     for(vector<int>::iterator it = succesors.begin(); it != succesors.end(); ++it) {
       child = state.move(true, *it);
-      // acum += child.value();
-      // if(!test(child, value, acum, 1-player)) return false;
-      if(!test(child, value, 1-player)) return false;
+      if(!testMenor(child, value, 1-player)) return false;
     }
     return true;
   }
   
-  if(!player) {
+  if(player == 0) {
     for(vector<int>::iterator it = succesors.begin(); it != succesors.end(); ++it) {
       state.move(false, *it);
-      // acum += child.value();
-      // if(test(child, value, acum, 1-player)) return true;
-      if(test(child, value, 1-player)) return true;
+      if(testMenor(child, value, 1-player)) return true;
     }
     return false;
   }
 }
 
 int scout(state_t state, int player, unsigned long long int &gen, unsigned long long int &eval) {
-
+  // cout << state;
   int value, acum = 0;
   state_t child;
   ++gen;
-  vector<int> succesors = state.get_succesors(player);
   if(state.terminal()) {
     ++eval;
     return sign[player] * state.value();
+    // return state.value();
 
-  } else if(succesors.empty()) {
-    cout << "pase" << endl;
+  // } else if(succesors.empty()) {
+  //   cout << endl << "pase" << endl;
+  //   // return -scout(state, 1-player, gen, eval);
+  //   return -scout(state, 1-player, gen, eval);
+
+  // } else {
+  //   if(player) child = state.move(true, succesors.front());
+  //   else child = state.move(false, succesors.front());
+  //   value = -scout(child, 1-player, gen, eval);
+
+  }
+  vector<int> succesors = state.get_succesors(player);
+
+  cout << "Jugador: " << player << endl;
+  cout << "Vacio: " << succesors.empty() << endl;
+
+  if(succesors.empty()) {
+
+    cout << "Jugador " << player << " pasó" << endl;
+
     return -scout(state, 1-player, gen, eval);
-
-  } else {
-    if(player) child = state.move(true, succesors.front());
-    else child = state.move(false, succesors.front());
-    // child = state.move(1-player, succesors.front());
-    value = scout(child, 1-player, gen, eval);
-
   }
-  if (player) {
+  child = state.move(player == 1, succesors.front());
+  value = -scout(child, 1-player, gen, eval);
+  if (player == 1) {
+
+    cout << "player 1" << endl;
+
     for(vector<int>::iterator it = succesors.begin()+1; it != succesors.end(); ++it) {
-      child = state.move(true, *it);
-      // acum += child.value();
-      // if(!test(child, value, acum, 1-player)) value += sign[1-player] * scout(child, 1-player, gen, eval);
-      if(!test(child, value, 1-player)) value += sign[1-player] * scout(child, 1-player, gen, eval);
+      if (*it != succesors.front()) {
+	child = state.move(true, *it);
+	// if(!test(child, value, 1-player)) value += sign[1-player] * scout(child, 1-player, gen, eval);
+	if(testMayor(child, value, 1-player)) value += -scout(child, 1-player, gen, eval);
+      }
     }
   }
-  if(!player) {
+  if(player == 0) {
     for(vector<int>::iterator it = succesors.begin()+1; it != succesors.end(); ++it) {
-      child = state.move(false, *it);
-      // acum += child.value();
-      // if(test(child, value, acum, 1-player)) value += sign[1-player] * scout(child, 1-player, gen, eval);
-      if(test(child, value, 1-player)) value += sign[1-player] * scout(child, 1-player, gen, eval);
+      if (*it != succesors.front()) {
+	child = state.move(false, *it);
+	// if(test(child, value, 1-player)) value += sign[1-player] * scout(child, 1-player, gen, eval);
+	if(testMenor(child, value, 1-player)) value += -scout(child, 1-player, gen, eval);
+
+      }
+
     }
+
   }
   return value;
 }
@@ -121,11 +161,11 @@ int main(int argc, const char **argv) {
       unsigned long long int eval = 0, gen = 0;
       // INIT
       clock_t t = clock(); 
-      int nmax = scout(state, 1-player, gen, eval);
+      int nmax = sign[1-player] * scout(state, 1-player, gen, eval);
       t = clock() - t;
       // END
       double seconds = (double) t / (double) CLOCKS_PER_SEC;	
-      if (nmax != 4) {
+      if (nmax != -4) {
 	cout << "Resultado erroneo: " << nmax << endl;
       }
       cout << d << " | " << seconds << " | " << eval << " | " << gen << endl;
@@ -154,57 +194,3 @@ int main(int argc, const char **argv) {
   }
   return 0;
 }
-
-
-// int main(int argc, const char **argv) {
-//   state_t root;
-//   cout << "Scout" << endl;
-//   cout << "Estado | Tiempo | Evaluados | Generados" << endl;
-
-//   for(int l = MAXMOVE; l > 0; --l) {
-//     state_t state(root);
-//     int player;
-//     int pos;
-
-//     for(int i = 0; i <= l; ++i) {
-//       player = (i % 2 == 0); // black moves first
-//       pos = PV[i];
-//       state = state.move(player, pos);
-//     }
-
-//     pid_t pid = fork();
-//     if(pid == -1) {
-//       perror("fork failed");
-//     } else if (pid == 0) {
-//       unsigned long long int eval = 0, gen = 0;
-//       clock_t t = clock();
-//       int nmax = scout(state, 1-player, eval, gen);
-//       t = clock() - t;
-//       double seconds = (double) t /(double) CLOCKS_PER_SEC;
-//       cout << l << " | " << seconds << " | " << eval << " | " << gen << endl;
-//       exit(0);
-
-//     } else {
-//       int waittime = 0;
-//       int status;
-//       pid_t wpid;
-//       while(1){
-// 	wpid = waitpid(pid, &status, WNOHANG);
-// 	if(wpid == 0) {
-// 	  waittime ++;
-// 	  sleep(1);
-// 	} else {
-// 	  break;
-// 	}
-//       }
-//     }
-//   }
-//   // cout << state;
-//   // vector<int> s = state.get_succesors(0);
-//   // for(vector<int>::iterator it = s.begin(); it != s.end(); ++it) {
-//   //   state_t estado = state.move(0, *it);
-//   //   cout << estado;
-//   // }  
-//   return 0;
-// }
-
