@@ -12,7 +12,7 @@
 #include <algorithm>  
 
 #define MAXMOVE 32
-#define TIMEOUT 1200
+#define TIMEOUT 600
 using namespace std;
 
 const int sign[2]={-1,1};   // 0 is white, 1 is black

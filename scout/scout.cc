@@ -18,7 +18,7 @@
 #include <ctime>
 
 #define MAXMOVE 32
-#define TIMEOUT 1200
+#define TIMEOUT 600
 
 using namespace std;
 
