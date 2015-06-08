@@ -2,15 +2,8 @@ CC = gcc
 CXX = g++
 OPT = -g
 
-all:
-	make main
-	make with_hash
-
-main : othello_cut.h
-	$(CXX) $(OPT)  main.cc -o main
-
-with_hash : othello_cut.h
-	$(CXX) $(OPT)  main_with_hash_table.cc -o with_hash
+negamax :
+	$(CXX) $(OPT) scout.cc -o scout.p02
 
 clean:
-	rm *.o *~ main with_hash
+	rm -f *.o *~ *.p02
